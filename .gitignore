@@ -1,19 +1,40 @@
-# Flutter / Dart
+# Flutter/Dart
 .dart_tool/
-.buildlog/
 .packages
+.pub-cache/
 .pub/
 build/
-ios/Flutter/Flutter.framework/
-ios/Flutter/Flutter.podspec
-*.apk
-*.aab
+flutter_*.png
+*.lock
 
-# IDEs
+# Android
+.gradle/
+local.properties
+*.iml
+*.apk
+*.aar
+*.dex
+*.class
+*.log
+
+# iOS
+DerivedData/
+*.xcworkspace
+Pods/
+*.xcuserdatad
+*.moved-aside
+*.xcuserstate
+
+# macOS/Linux/Web
+flutter/ephemeral/
+build/
+lib/generated_plugin_registrant.dart
+
+# VS Code
 .vscode/
 .idea/
-*.iml
 
-# System files
-.DS_Store
-Thumbs.db
+# Others
+*.log
+*.tmp
+*.DS_Store
