@@ -1,0 +1,19 @@
+# Flutter / Dart
+.dart_tool/
+.buildlog/
+.packages
+.pub/
+build/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+*.apk
+*.aab
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# System files
+.DS_Store
+Thumbs.db
