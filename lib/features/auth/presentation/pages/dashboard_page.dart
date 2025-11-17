@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-
+import 'package:ihealthy/features/auth/water/pages/water_page.dart'; // IMPORTANTE
+import 'package:ihealthy/features/auth/exercise/pages/exercise_page.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -23,7 +24,7 @@ class MyApp extends StatelessWidget {
 }
 
 // =======================================
-//  TELA PRINCIPAL COM BARRA DE NAVEGAÇÃO
+// TELA PRINCIPAL COM BARRA DE NAVEGAÇÃO
 // =======================================
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -35,13 +36,14 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    DashboardPage(),
-    AguaPage(),
-    ExerciciosPage(),
-    HabitosPage(),
-    ProgressoPage(),
-    ConquistasPage(),
+  final List<Widget> _screens = [
+    const DashboardPage(),
+    const WaterPage(), 
+    const ExercisePage(),
+    const ExerciciosPage(),
+    const HabitosPage(),
+    const ProgressoPage(),
+    const ConquistasPage(),
   ];
 
   void onTabTapped(int index) {
@@ -117,7 +119,6 @@ class _DashboardPageState extends State<DashboardPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Cabeçalho lilás
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -133,8 +134,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   children: const [
                     CircleAvatar(
                       radius: 25,
-                      backgroundImage: NetworkImage(
-                          'https://i.pravatar.cc/150?img=47'),
+                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=47'),
                     ),
                     SizedBox(height: 16),
                     Text(
@@ -145,10 +145,8 @@ class _DashboardPageState extends State<DashboardPage> {
                           color: Colors.black87),
                     ),
                     SizedBox(height: 4),
-                    Text(
-                      "Sexta-feira, 3 de outubro",
-                      style: TextStyle(color: Colors.black54),
-                    ),
+                    Text("Sexta-feira, 3 de outubro",
+                        style: TextStyle(color: Colors.black54)),
                   ],
                 ),
               ),
@@ -179,7 +177,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
               const SizedBox(height: 20),
 
-              // Progresso de hoje
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Align(
@@ -193,7 +190,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
               const SizedBox(height: 10),
 
-              // Cards de progresso
               _buildProgressCard(
                 "Hidratação",
                 "${(aguaAtual / metaAgua * 100).toStringAsFixed(0)}%",
@@ -201,6 +197,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 aguaAtual / metaAgua,
                 Colors.blueAccent,
               ),
+
               _buildProgressCard(
                 "Exercícios",
                 "${(exercicioMin / metaExercicio * 100).toStringAsFixed(0)}%",
@@ -208,6 +205,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 exercicioMin / metaExercicio,
                 Colors.orangeAccent,
               ),
+
               _buildProgressCard(
                 "Hábitos",
                 "${((habitos.where((h) => h['feito']).length / habitos.length) * 100).toStringAsFixed(0)}%",
@@ -218,7 +216,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
               const SizedBox(height: 20),
 
-              // Ações rápidas
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Align(
@@ -229,7 +226,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 10),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -238,6 +237,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   _buildQuickAction("+ Hábitos", Colors.green, Icons.self_improvement),
                 ],
               ),
+
               const SizedBox(height: 30),
             ],
           ),
@@ -302,17 +302,8 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 // ====================================
-// Telas Secundárias
+// Telas Secundárias (temporárias)
 // ====================================
-class AguaPage extends StatelessWidget {
-  const AguaPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SimpleScreen(title: 'Controle de Água 💧');
-  }
-}
-
 class ExerciciosPage extends StatelessWidget {
   const ExerciciosPage({super.key});
 
