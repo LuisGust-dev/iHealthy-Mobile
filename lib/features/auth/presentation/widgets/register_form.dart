@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/auth_bloc.dart';
@@ -25,11 +27,15 @@ class _RegisterFormState extends State<RegisterForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Processando cadastro...')),
           );
-        } else if (state is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cadastro realizado com sucesso!')),
-          );
-        } else if (state is AuthFailure) {
+        }  else if (state is AuthSuccess) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Cadastro realizado com sucesso! Faça login.')),
+  );
+
+  // ⬅️ Agora volta para login automaticamente
+  Navigator.of(context).pushReplacementNamed('/login');
+}
+else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Erro: ${state.message}')),
           );

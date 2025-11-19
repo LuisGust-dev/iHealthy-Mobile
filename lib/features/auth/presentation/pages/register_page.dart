@@ -1,5 +1,8 @@
+
+
 import 'package:flutter/material.dart';
-import '../widgets/register_form.dart';
+import 'package:ihealthy/features/auth/presentation/widgets/register_form.dart';
+
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});

@@ -16,7 +16,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLoginRequested(
       LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    await Future.delayed(const Duration(milliseconds: 500));
 
     try {
       final user = await _dbHelper.getUserByEmail(event.email);
@@ -26,6 +25,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else if (user['password'] != event.password) {
         emit(AuthFailure('Senha incorreta.'));
       } else {
+        // seta o usuário logado como ativo
+        _dbHelper.setActiveUser(user['id'] as int);
+
         emit(AuthSuccess());
       }
     } catch (e) {
@@ -37,7 +39,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onRegisterRequested(
       RegisterRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    await Future.delayed(const Duration(milliseconds: 500));
 
     try {
       final existingUser = await _dbHelper.getUserByEmail(event.email);
@@ -53,7 +54,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         'password': event.password,
       });
 
-      emit(AuthSuccess());
+      // 🔥 agora cadastro NÃO faz login automático
+      emit(AuthRegistered());
     } catch (e) {
       emit(AuthFailure('Erro ao cadastrar: $e'));
     }
