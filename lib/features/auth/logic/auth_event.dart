@@ -31,3 +31,5 @@ class RegisterRequested extends AuthEvent {
 }
 
 class LogoutRequested extends AuthEvent {}
+
+

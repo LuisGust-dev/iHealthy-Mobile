@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ihealthy/services/database_helper.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
+import 'package:ihealthy/services/api_client.dart';
+
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -13,27 +15,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   // LOGIN
-  Future<void> _onLoginRequested(
-      LoginRequested event, Emitter<AuthState> emit) async {
-    emit(AuthLoading());
 
-    try {
-      final user = await _dbHelper.getUserByEmail(event.email);
+Future<void> _onLoginRequested(
+    LoginRequested event, Emitter<AuthState> emit) async {
+  emit(AuthLoading());
 
-      if (user == null) {
-        emit(AuthFailure('Usuário não encontrado.'));
-      } else if (user['password'] != event.password) {
-        emit(AuthFailure('Senha incorreta.'));
-      } else {
-        // seta o usuário logado como ativo
-        _dbHelper.setActiveUser(user['id'] as int);
+  final result = await IHealthyApiClient.login(
+    email: event.email,
+    password: event.password,
+  );
 
-        emit(AuthSuccess());
-      }
-    } catch (e) {
-      emit(AuthFailure('Erro ao realizar login: $e'));
-    }
+  if (result == null) {
+    emit(AuthFailure("E-mail ou senha inválidos."));
+    return;
   }
+
+  // Login OK → emitir sucesso com dados reais
+  emit(AuthSuccess(
+    userId: result["user_id"],
+    name: result["name"],
+    email: result["email"],
+    accessToken: result["access"],
+    refreshToken: result["refresh"],
+  ));
+}
+
 
   // CADASTRO
   Future<void> _onRegisterRequested(

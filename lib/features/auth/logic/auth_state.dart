@@ -5,20 +5,32 @@ abstract class AuthState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Estado inicial
 class AuthInitial extends AuthState {}
 
-/// Estado enquanto processa login/cadastro
 class AuthLoading extends AuthState {}
 
-/// Estado quando o login foi bem-sucedido (entrar no sistema)
-class AuthSuccess extends AuthState {}
+/// Agora AuthSuccess contém os dados reais da API
+class AuthSuccess extends AuthState {
+  final int userId;
+  final String name;
+  final String email;
+  final String accessToken;
+  final String refreshToken;
 
-/// 🔥 NOVO — Estado quando o cadastro foi concluído
-/// Usado para redirecionar o usuário para a tela de login
+  AuthSuccess({
+    required this.userId,
+    required this.name,
+    required this.email,
+    required this.accessToken,
+    required this.refreshToken,
+  });
+
+  @override
+  List<Object?> get props => [userId, name, email, accessToken, refreshToken];
+}
+
 class AuthRegistered extends AuthState {}
 
-/// Estado quando há erro
 class AuthFailure extends AuthState {
   final String message;
 
