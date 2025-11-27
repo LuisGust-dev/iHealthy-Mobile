@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ihealthy/services/database_helper.dart';
+import 'package:ihealthy/services/api_dashboard.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:ihealthy/features/auth/water/pages/water_page.dart';
 import 'package:ihealthy/features/auth/exercise/pages/exercise_page.dart';
@@ -106,7 +106,6 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  final _db = DatabaseHelper();
 
   int aguaAtualMl = 0;
   int metaAguaMl = 2000;
@@ -125,32 +124,27 @@ class _DashboardPageState extends State<DashboardPage> {
     _loadDashboardData();
   }
 
-  Future<void> _loadDashboardData() async {
-    final aguaHoje = await _db.getTodayTotalMl();
-    final metaAgua = await _db.getDailyGoalMl();
-    final exercicioHoje = await _db.getTodayTotalExerciseMin();
-    final metaEx = await _db.getExerciseDailyGoalMin();
-
-    final habitos = await _db.getAllHabits();
-    int feitos = 0;
-
-    for (var h in habitos) {
-      bool done = await _db.isHabitDoneToday(h['id']);
-      if (done) feitos++;
-    }
+ Future<void> _loadDashboardData() async {
+  try {
+    final data = await DashboardApi.getDashboardData();
 
     setState(() {
-      aguaAtualMl = aguaHoje;
-      metaAguaMl = metaAgua;
-      exercicioMin = exercicioHoje;
-      metaExercicio = metaEx;
+      aguaAtualMl = data["water"]["total_ml"];
+      metaAguaMl = 2000; // pode vir da API depois
 
-      totalHabitos = habitos.length;
-      habitosConcluidosHoje = feitos;
+      exercicioMin = data["exercise"]["total_min"];
+      metaExercicio = 30; // pode vir da API depois
+
+      totalHabitos = data["habits"]["count"];
+      habitosConcluidosHoje = data["habits"]["completed_today"];
 
       isLoading = false;
     });
+  } catch (e) {
+    print("Erro ao carregar dashboard: $e");
   }
+}
+
 
   double _aguaPercent() {
     if (metaAguaMl == 0) return 0;

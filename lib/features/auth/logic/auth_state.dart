@@ -1,5 +1,3 @@
-
-
 import 'package:equatable/equatable.dart';
 
 abstract class AuthState extends Equatable {
@@ -7,11 +5,13 @@ abstract class AuthState extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Estado inicial
 class AuthInitial extends AuthState {}
 
+/// Estado enquanto processa login/cadastro
 class AuthLoading extends AuthState {}
 
-/// Agora AuthSuccess contém os dados reais da API
+/// Estado quando o login foi bem-sucedido
 class AuthSuccess extends AuthState {
   final int userId;
   final String name;
@@ -28,11 +28,19 @@ class AuthSuccess extends AuthState {
   });
 
   @override
-  List<Object?> get props => [userId, name, email, accessToken, refreshToken];
+  List<Object?> get props => [
+        userId,
+        name,
+        email,
+        accessToken,
+        refreshToken,
+      ];
 }
 
+/// Estado quando o cadastro foi concluído (não faz login automático)
 class AuthRegistered extends AuthState {}
 
+/// Estado quando há erro
 class AuthFailure extends AuthState {
   final String message;
 

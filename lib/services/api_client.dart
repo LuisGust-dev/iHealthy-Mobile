@@ -11,9 +11,9 @@ class IHealthyApiClient {
   /// Ajuste essa URL conforme o seu cenário:
   static const String _baseUrl = 'http://10.0.2.2:8000'; // AJUSTE SE PRECISAR
 
-  /// Faz login na rota /api/login/ (AppUser do Django)
-  /// Envia: email e password
-  /// Retorna: Map com dados do usuário + tokens ou null em caso de erro
+  // ============================================================
+  // LOGIN DO USUÁRIO (POST /api/login/)
+  // ============================================================
   static Future<Map<String, dynamic>?> login({
     required String email,
     required String password,
@@ -32,16 +32,12 @@ class IHealthyApiClient {
         }),
       );
 
-      // Apenas pra debugar no console do Flutter:
       print('STATUS LOGIN: ${response.statusCode}');
       print('BODY LOGIN: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Sucesso: retorna o JSON decodificado
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data;
+        return jsonDecode(response.body) as Map<String, dynamic>;
       } else {
-        // Falha no login, você pode tratar mensagens específicas aqui
         return null;
       }
     } catch (e) {
@@ -49,5 +45,63 @@ class IHealthyApiClient {
       return null;
     }
   }
+
+  // ============================================================
+  // CADASTRO DO USUÁRIO (POST /api/users/)
+  // ============================================================
+  static Future<Map<String, dynamic>?> register({
+  required String name,
+  required String email,
+  required String password,
+}) async {
+  final uri = Uri.parse('$_baseUrl/api/register/');
+
+  try {
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    print('STATUS REGISTER: ${response.statusCode}');
+    print('BODY REGISTER: ${response.body}');
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      return null;
+    }
+  } catch (e) {
+    print('Erro ao chamar API de cadastro: $e');
+    return null;
+  }
 }
 
+
+static Future<Map<String, dynamic>> getDashboard(int userId, String token) async {
+  final uri = Uri.parse('$_baseUrl/api/dashboard/$userId/');
+
+  final response = await http.get(
+    uri,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+  );
+
+  print('STATUS DASHBOARD: ${response.statusCode}');
+  print('BODY DASHBOARD: ${response.body}');
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Erro ao buscar dashboard da API.");
+  }
+}
+
+
+}
