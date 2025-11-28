@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:ihealthy/services/api_dashboard.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:ihealthy/features/auth/water/pages/water_page.dart';
+import 'package:ihealthy/features/auth/exercise/pages/exercise_page.dart';
+import 'package:ihealthy/features/auth/habits/pages/habit_page.dart';
+import 'package:ihealthy/features/auth/progress/pages/progress_page.dart';
+import 'package:ihealthy/features/auth/conquistas/pages/conquistas_page.dart'; // 🔥 IMPORTAR AQUI
+
 
 void main() {
   runApp(const MyApp());
@@ -23,7 +30,7 @@ class MyApp extends StatelessWidget {
 }
 
 // =======================================
-//  TELA PRINCIPAL COM BARRA DE NAVEGAÇÃO
+// TELA PRINCIPAL COM BARRA DE NAVEGAÇÃO
 // =======================================
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -35,13 +42,13 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    DashboardPage(),
-    AguaPage(),
-    ExerciciosPage(),
-    HabitosPage(),
-    ProgressoPage(),
-    ConquistasPage(),
+  final List<Widget> _screens = [
+    const DashboardPage(),
+    const WaterPage(),
+    const ExercisePage(),
+    const HabitPage(), 
+    const ProgressPage(),
+    const ConquistasPage(),
   ];
 
   void onTabTapped(int index) {
@@ -66,10 +73,22 @@ class _MainPageState extends State<MainPage> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Início'),
           BottomNavigationBarItem(icon: Icon(Icons.local_drink), label: 'Água'),
-          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: 'Exercícios'),
-          BottomNavigationBarItem(icon: Icon(Icons.self_improvement), label: 'Hábitos'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Progresso'),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Conquistas'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.fitness_center),
+            label: 'Exercícios',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.self_improvement),
+            label: 'Hábitos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Progresso',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.emoji_events),
+            label: 'Conquistas',
+          ),
         ],
       ),
     );
@@ -87,166 +106,280 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  double aguaAtual = 1.5;
-  double metaAgua = 2.0;
 
-  int exercicioMin = 30;
-  int metaExercicio = 45;
+  int aguaAtualMl = 0;
+  int metaAguaMl = 2000;
 
-  List<Map<String, dynamic>> habitos = [
-    {'titulo': 'Dormir 8h', 'feito': true},
-    {'titulo': 'Meditar', 'feito': false},
-    {'titulo': 'Ler 10 páginas', 'feito': true},
-  ];
+  int exercicioMin = 0;
+  int metaExercicio = 30;
+
+  int totalHabitos = 0;
+  int habitosConcluidosHoje = 0;
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardData();
+  }
+
+ Future<void> _loadDashboardData() async {
+  try {
+    final data = await DashboardApi.getDashboardData();
+
+    setState(() {
+      aguaAtualMl = data["water"]["total_ml"];
+      metaAguaMl = 2000; // pode vir da API depois
+
+      exercicioMin = data["exercise"]["total_min"];
+      metaExercicio = 30; // pode vir da API depois
+
+      totalHabitos = data["habits"]["count"];
+      habitosConcluidosHoje = data["habits"]["completed_today"];
+
+      isLoading = false;
+    });
+  } catch (e) {
+    print("Erro ao carregar dashboard: $e");
+  }
+}
+
+
+  double _aguaPercent() {
+    if (metaAguaMl == 0) return 0;
+    return (aguaAtualMl / metaAguaMl).clamp(0, 1);
+  }
+
+  double _exPercent() {
+    if (metaExercicio == 0) return 0;
+    return (exercicioMin / metaExercicio).clamp(0, 1);
+  }
+
+  double _habitosPercent() {
+    if (totalHabitos == 0) return 0;
+    return (habitosConcluidosHoje / totalHabitos).clamp(0, 1);
+  }
 
   String get mensagemMotivacional {
-    if (aguaAtual >= metaAgua && exercicioMin >= metaExercicio) {
-      return 'Excelente! Continue assim! 🚀';
-    } else if (aguaAtual >= metaAgua * 0.5) {
-      return 'Você está indo bem, continue progredindo 💪';
-    } else {
-      return 'Vamos começar o dia com energia! 🌞';
+    final aguaOk = aguaAtualMl >= metaAguaMl;
+    final exOk = exercicioMin >= metaExercicio;
+    final habitosOk = totalHabitos > 0 && habitosConcluidosHoje == totalHabitos;
+
+    if (aguaOk && exOk && habitosOk) {
+      return "Dia perfeito! Você está brilhando! ✨🔥";
     }
+
+    if (aguaOk || exOk || habitosOk) {
+      return "Ótimo! Continue assim que você está no caminho certo! 💪";
+    }
+
+    return "Vamos começar o dia com energia positiva! 🌞";
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xfff9f9f9),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Cabeçalho lilás
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Color(0xffcbbcf6),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundImage: NetworkImage(
-                          'https://i.pravatar.cc/150?img=47'),
+        child: RefreshIndicator(
+          color: Colors.teal,
+          onRefresh: _loadDashboardData,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                // ==============================
+                // CABEÇALHO
+                // ==============================
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    color: Color(0xffcbbcf6),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(40),
+                      bottomRight: Radius.circular(40),
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      "Criar seu objetivo para o seu futuro.",
-                      style: TextStyle(
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundImage: NetworkImage(
+                          'https://i.pravatar.cc/150?img=47',
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        "Criar seu objetivo para o seu futuro.",
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Sexta-feira, 3 de outubro",
-                      style: TextStyle(color: Colors.black54),
-                    ),
-                  ],
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "Sexta-feira, 3 de outubro",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              // Mensagem motivacional
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(16),
+                // ==============================
+                // MENSAGEM
+                // ==============================
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.emoji_emotions, color: Colors.teal),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          mensagemMotivacional,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.water_drop, color: Colors.blueAccent),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        mensagemMotivacional,
-                        style: const TextStyle(fontSize: 15),
+
+                const SizedBox(height: 20),
+
+                // ==============================
+                // PROGRESSO HOJE
+                // ==============================
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Progresso de Hoje",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // HIDRATAÇÃO
+                _buildProgressCard(
+                  "Hidratação",
+                  "${(_aguaPercent() * 100).toStringAsFixed(0)}%",
+                  "$aguaAtualMl ml de $metaAguaMl ml",
+                  _aguaPercent(),
+                  Colors.blueAccent,
+                ),
+
+                // EXERCÍCIOS
+                _buildProgressCard(
+                  "Exercícios",
+                  "${(_exPercent() * 100).toStringAsFixed(0)}%",
+                  "$exercicioMin min de $metaExercicio min",
+                  _exPercent(),
+                  Colors.orangeAccent,
+                ),
+
+                // HÁBITOS (AGORA REAL)
+                _buildProgressCard(
+                  "Hábitos",
+                  "${(_habitosPercent() * 100).toStringAsFixed(0)}%",
+                  "$habitosConcluidosHoje de $totalHabitos hábitos",
+                  _habitosPercent(),
+                  Colors.green,
+                ),
+
+                const SizedBox(height: 20),
+
+                // ==============================
+                // AÇÕES RÁPIDAS
+                // ==============================
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Ações Rápidas",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildQuickAction(
+                      "+ Água",
+                      Colors.blueAccent,
+                      Icons.water_drop,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WaterPage()),
+                      ).then((_) => _loadDashboardData()),
+                    ),
+                    _buildQuickAction(
+                      "+ Exercícios",
+                      Colors.orangeAccent,
+                      Icons.fitness_center,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ExercisePage()),
+                      ).then((_) => _loadDashboardData()),
+                    ),
+                    _buildQuickAction(
+                      "+ Hábitos",
+                      Colors.green,
+                      Icons.self_improvement,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const HabitosPage()),
+                      ).then((_) => _loadDashboardData()),
+                    ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 20),
-
-              // Progresso de hoje
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Progresso de Hoje",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Cards de progresso
-              _buildProgressCard(
-                "Hidratação",
-                "${(aguaAtual / metaAgua * 100).toStringAsFixed(0)}%",
-                "${(aguaAtual * 1000).toStringAsFixed(0)}ml de ${(metaAgua * 1000).toStringAsFixed(0)}ml",
-                aguaAtual / metaAgua,
-                Colors.blueAccent,
-              ),
-              _buildProgressCard(
-                "Exercícios",
-                "${(exercicioMin / metaExercicio * 100).toStringAsFixed(0)}%",
-                "$exercicioMin min de $metaExercicio min",
-                exercicioMin / metaExercicio,
-                Colors.orangeAccent,
-              ),
-              _buildProgressCard(
-                "Hábitos",
-                "${((habitos.where((h) => h['feito']).length / habitos.length) * 100).toStringAsFixed(0)}%",
-                "${habitos.where((h) => h['feito']).length} de ${habitos.length} hábitos",
-                habitos.where((h) => h['feito']).length / habitos.length,
-                Colors.green,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Ações rápidas
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Ações Rápidas",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildQuickAction("+ Água", Colors.blueAccent, Icons.water_drop),
-                  _buildQuickAction("+ Exercícios", Colors.orangeAccent, Icons.fitness_center),
-                  _buildQuickAction("+ Hábitos", Colors.green, Icons.self_improvement),
-                ],
-              ),
-              const SizedBox(height: 30),
-            ],
+                const SizedBox(height: 30),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProgressCard(String title, String percent, String subtitle, double value, Color color) {
+  // ============================
+  // COMPONENTES
+  // ============================
+  Widget _buildProgressCard(
+    String title,
+    String percent,
+    String subtitle,
+    double value,
+    Color color,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       padding: const EdgeInsets.all(16),
@@ -259,7 +392,7 @@ class _DashboardPageState extends State<DashboardPage> {
             blurRadius: 10,
             spreadRadius: 2,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -269,13 +402,16 @@ class _DashboardPageState extends State<DashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(percent, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+              Text(
+                percent,
+                style: TextStyle(color: color, fontWeight: FontWeight.bold),
+              ),
             ],
           ),
           const SizedBox(height: 6),
           LinearPercentIndicator(
             lineHeight: 10,
-            percent: value.clamp(0, 1),
+            percent: value,
             progressColor: color,
             backgroundColor: color.withOpacity(0.2),
             barRadius: const Radius.circular(10),
@@ -287,14 +423,19 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildQuickAction(String label, Color color, IconData icon) {
+  Widget _buildQuickAction(
+    String label,
+    Color color,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      onPressed: () {},
+      onPressed: onTap,
       icon: Icon(icon, color: Colors.white),
       label: Text(label, style: const TextStyle(color: Colors.white)),
     );
@@ -302,17 +443,8 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 // ====================================
-// Telas Secundárias
+// Telas Secundárias (temporárias)
 // ====================================
-class AguaPage extends StatelessWidget {
-  const AguaPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const _SimpleScreen(title: 'Controle de Água 💧');
-  }
-}
-
 class ExerciciosPage extends StatelessWidget {
   const ExerciciosPage({super.key});
 
@@ -327,7 +459,7 @@ class HabitosPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _SimpleScreen(title: 'Hábitos Diários 🌱');
+    return const HabitPage();
   }
 }
 
@@ -340,14 +472,7 @@ class ProgressoPage extends StatelessWidget {
   }
 }
 
-class ConquistasPage extends StatelessWidget {
-  const ConquistasPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const _SimpleScreen(title: 'Conquistas 🏅');
-  }
-}
 
 // Template de tela simples
 class _SimpleScreen extends StatelessWidget {
@@ -359,8 +484,10 @@ class _SimpleScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xfff9f9f9),
       body: Center(
-        child: Text(title,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        child: Text(
+          title,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

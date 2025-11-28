@@ -25,16 +25,26 @@ class _RegisterFormState extends State<RegisterForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Processando cadastro...')),
           );
-        } else if (state is AuthSuccess) {
+        }
+
+        else if (state is AuthRegistered) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+            const SnackBar(
+              content: Text('Cadastro realizado com sucesso! Faça login.'),
+            ),
           );
-        } else if (state is AuthFailure) {
+
+          // Redireciona para tela de login
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
+
+        else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Erro: ${state.message}')),
           );
         }
       },
+
       child: Form(
         key: _formKey,
         child: Column(
@@ -47,6 +57,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   value!.isEmpty ? 'Informe seu nome' : null,
             ),
             const SizedBox(height: 12),
+
             TextFormField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'E-mail'),
@@ -54,14 +65,18 @@ class _RegisterFormState extends State<RegisterForm> {
                   value!.isEmpty ? 'Informe um e-mail válido' : null,
             ),
             const SizedBox(height: 12),
+
             TextFormField(
               controller: _passwordController,
               obscureText: true,
               decoration: const InputDecoration(labelText: 'Senha'),
               validator: (value) =>
-                  value!.length < 6 ? 'A senha deve ter pelo menos 6 caracteres' : null,
+                  value!.length < 6
+                      ? 'A senha deve ter pelo menos 6 caracteres'
+                      : null,
             ),
             const SizedBox(height: 24),
+
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
