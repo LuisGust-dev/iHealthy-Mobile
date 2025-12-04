@@ -1,17 +1,26 @@
 import 'package:equatable/equatable.dart';
 
+/// Estado base para autenticação.
+/// Todos os estados relacionados ao fluxo de autenticação devem estender esta classe.
 abstract class AuthState extends Equatable {
+  const AuthState();
+
+  /// Lista de propriedades utilizada para comparação via Equatable.
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => const [];
 }
 
-/// Estado inicial
-class AuthInitial extends AuthState {}
+/// Estado inicial da autenticação, antes de qualquer ação do usuário.
+class AuthInitial extends AuthState {
+  const AuthInitial();
+}
 
-/// Estado enquanto processa login/cadastro
-class AuthLoading extends AuthState {}
+/// Estado exibido enquanto o sistema processa login ou cadastro.
+class AuthLoading extends AuthState {
+  const AuthLoading();
+}
 
-/// Estado quando o login foi bem-sucedido
+/// Estado representando um login bem-sucedido.
 class AuthSuccess extends AuthState {
   final int userId;
   final String name;
@@ -19,7 +28,8 @@ class AuthSuccess extends AuthState {
   final String accessToken;
   final String refreshToken;
 
-  AuthSuccess({
+  /// Construtor do estado de sucesso.
+  const AuthSuccess({
     required this.userId,
     required this.name,
     required this.email,
@@ -27,6 +37,7 @@ class AuthSuccess extends AuthState {
     required this.refreshToken,
   });
 
+  /// Propriedades utilizadas na comparação de estados.
   @override
   List<Object?> get props => [
         userId,
@@ -37,14 +48,18 @@ class AuthSuccess extends AuthState {
       ];
 }
 
-/// Estado quando o cadastro foi concluído (não faz login automático)
-class AuthRegistered extends AuthState {}
+/// Estado emitido quando o cadastro é feito com sucesso,
+/// mas sem realizar login automático.
+class AuthRegistered extends AuthState {
+  const AuthRegistered();
+}
 
-/// Estado quando há erro
+/// Estado que representa falha em algum processo de autenticação.
 class AuthFailure extends AuthState {
   final String message;
 
-  AuthFailure(this.message);
+  /// Construtor do estado de falha.
+  const AuthFailure(this.message);
 
   @override
   List<Object?> get props => [message];
